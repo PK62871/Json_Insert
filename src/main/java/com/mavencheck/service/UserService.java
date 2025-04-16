@@ -10,9 +10,10 @@ import com.mavencheck.exception.UsernotFoundException;
 import com.mavencheck.model.UserDetails;
 import com.mavencheck.repo.UserWrapperRepository;
 import org.springframework.stereotype.Service;
+import java.lang.reflect.Field;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.validation.Valid;
+
 
 
 @Service
@@ -27,7 +28,8 @@ public class UserService {
         this.objectMapper = objectMapper;
     }
 
-    public UserWrapper saveUser(UserDetails userDetails) {
+    public UserWrapper saveUser(@Valid UserDetails userDetails) {
+        validateNoNullFields(userDetails); // generic null check
         try {
             String json = objectMapper.writeValueAsString(userDetails);
 
@@ -60,6 +62,20 @@ public class UserService {
                 json.has("email") ? json.get("email").asText() : null,
                 json.has("lastName") ? json.get("lastName").asText() : null
         );
+    }
+
+    private void validateNoNullFields(Object object) {
+        for (Field field : object.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(object);
+                if (value == null) {
+                    throw new IllegalArgumentException("Field '" + field.getName() + "' cannot be null.");
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Unable to access field " + field.getName(), e);
+            }
+        }
     }
 
 }
