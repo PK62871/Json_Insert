@@ -32,4 +32,17 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(UsernotFoundException.class)
+    public ResponseEntity<?> handleNotFound(UsernotFoundException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", java.time.ZonedDateTime.now().toString());
+        response.put("status", 404);
+        response.put("error", "Not Found");
+        response.put("message", ex.getMessage());
+        response.put("path", "/api/users");
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
 }

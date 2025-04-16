@@ -3,11 +3,16 @@ package com.mavencheck.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mavencheck.dto.UserResponseDTO;
 import com.mavencheck.entity.UserWrapper;
 import com.mavencheck.exception.DuplicateUserException;
+import com.mavencheck.exception.UsernotFoundException;
 import com.mavencheck.model.UserDetails;
 import com.mavencheck.repo.UserWrapperRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -40,4 +45,23 @@ public class UserService {
     }
 
 
+    public UserWrapper getUserById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new UsernotFoundException("User not found with id: " + id));
+    }
+
+    public UserResponseDTO getUserByFirstName(String firstName) {
+        UserWrapper user = repository.findByFirstName(firstName)
+                .orElseThrow(() -> new UsernotFoundException("User not found with this FirstName: " + firstName));
+
+        JsonNode json = user.getUserDetailsJson();
+        return new UserResponseDTO(
+                json.has("firstName") ? json.get("firstName").asText() : null,
+                json.has("email") ? json.get("email").asText() : null,
+                json.has("lastName") ? json.get("lastName").asText() : null
+        );
+    }
+
 }
+
+
